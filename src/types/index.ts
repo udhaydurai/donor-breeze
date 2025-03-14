@@ -19,6 +19,8 @@ export interface InvoiceData {
     state: string;
     zip: string;
     country: string;
+    email?: string;
+    phone?: string;
   };
   items: InvoiceItem[];
   notes?: string;

@@ -132,6 +132,12 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
               {invoice.billTo.country && (
                 <p className="text-sm">{invoice.billTo.country}</p>
               )}
+              {invoice.billTo.email && (
+                <p className="text-sm">Email: {invoice.billTo.email}</p>
+              )}
+              {invoice.billTo.phone && (
+                <p className="text-sm">Phone: {invoice.billTo.phone}</p>
+              )}
             </div>
           </div>
 

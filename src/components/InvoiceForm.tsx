@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -38,6 +37,8 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ initialData, isEditing = fals
         state: '',
         zip: '',
         country: '',
+        email: '',
+        phone: '',
       },
       items: [
         {
@@ -47,7 +48,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ initialData, isEditing = fals
           price: 0,
         },
       ],
-      notes: '',
+      notes: 'Please make checks payable to: San Diego Tamil Sangam\n\nFor any questions, please contact us at: sdts.mails@gmail.com',
       paymentInfo: {
         bankName: organizationSettings.bankName || '',
         accountName: organizationSettings.accountName || '',
@@ -237,6 +238,27 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ initialData, isEditing = fals
                   value={invoiceData.billTo.country}
                   onChange={(e) => updateBillTo('country', e.target.value)}
                   placeholder="Country"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="clientEmail">Email (Optional)</Label>
+                <Input
+                  id="clientEmail"
+                  type="email"
+                  value={invoiceData.billTo.email || ''}
+                  onChange={(e) => updateBillTo('email', e.target.value)}
+                  placeholder="client@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="clientPhone">Phone (Optional)</Label>
+                <Input
+                  id="clientPhone"
+                  value={invoiceData.billTo.phone || ''}
+                  onChange={(e) => updateBillTo('phone', e.target.value)}
+                  placeholder="(555) 123-4567"
                 />
               </div>
             </div>
