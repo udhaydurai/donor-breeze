@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { InvoiceData } from '@/types';
 import { Button } from "@/components/ui/button";
@@ -42,24 +41,54 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
   const downloadPDF = async () => {
     if (!invoiceRef.current) return;
     
-    const canvas = await html2canvas(invoiceRef.current, {
-      scale: 2,
-      logging: false,
-      useCORS: true,
-    });
+    invoiceRef.current.classList.add('pdf-export');
     
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-    
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-    pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+    try {
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+      
+      invoiceRef.current.classList.remove('pdf-export');
+      
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const pdfWidth = 210;
+      const pdfHeight = 297;
+      
+      const margin = 15;
+      const contentWidth = pdfWidth - (margin * 2);
+      
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let finalImgWidth = imgWidth;
+      let finalImgHeight = imgHeight;
+      
+      const maxContentHeight = pdfHeight - (margin * 2);
+      
+      if (imgHeight > maxContentHeight) {
+        const scale = maxContentHeight / imgHeight;
+        finalImgWidth = imgWidth * scale;
+        finalImgHeight = maxContentHeight;
+      }
+      
+      const xPosition = margin + (contentWidth - finalImgWidth) / 2;
+      
+      pdf.addImage(imgData, 'PNG', xPosition, margin, finalImgWidth, finalImgHeight);
+      
+      pdf.save(`Invoice-${invoice.invoiceNumber}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
   return (

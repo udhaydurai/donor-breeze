@@ -160,3 +160,22 @@
 .line-item:hover {
   background-color: rgba(59, 130, 246, 0.05);
 }
+
+/* PDF Export styles */
+.pdf-export {
+  background-color: white;
+  max-width: 800px;
+}
+
+.pdf-export table {
+  font-size: 0.9rem;
+}
+
+.pdf-export p {
+  margin-bottom: 0.25rem;
+}
+
+@page {
+  margin: 15mm;
+  size: A4 portrait;
+}
