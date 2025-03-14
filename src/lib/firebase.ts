@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAzaCDvfzyDiq_rYvQSL3yjvnHgcdxs2C0",
+  apiKey: "AIzaSyBfL6OjVwxxsN5KQnS76cLoTLUbRr8_yF0",
   authDomain: "invoice-generator-sdts.firebaseapp.com",
   projectId: "invoice-generator-sdts",
   storageBucket: "invoice-generator-sdts.appspot.com",
