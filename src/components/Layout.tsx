@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Home, Settings, LogOut } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useAuth } from '@/context/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const { currentUser, signOut } = useAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -26,10 +28,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <span className="text-xl font-heading font-semibold">InvoiceGen</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Avatar>
-              <AvatarImage src="" />
-              <AvatarFallback className="bg-nonprofit-500 text-white">NP</AvatarFallback>
-            </Avatar>
+            {currentUser && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm hidden md:inline">{currentUser.email}</span>
+                <Avatar>
+                  <AvatarImage src={currentUser.photoURL || ""} />
+                  <AvatarFallback className="bg-nonprofit-500 text-white">
+                    {currentUser.email?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -56,7 +65,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </Button>
           </nav>
           <div className="mt-auto">
-            <Button variant="ghost" className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50">
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={signOut}
+            >
               <LogOut size={18} />
               <span>Logout</span>
             </Button>
