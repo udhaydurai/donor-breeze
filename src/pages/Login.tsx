@@ -26,12 +26,12 @@ const verificationSchema = z.object({
 const Login = () => {
   const { currentUser, sendLoginCode, verifyLoginCode } = useAuth();
   const [step, setStep] = useState<'email' | 'verification'>('email');
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("sdts.mails@gmail.com");
 
   const emailForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: "sdts.mails@gmail.com",
     },
   });
 

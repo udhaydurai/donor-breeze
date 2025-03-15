@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex items-center gap-2">
                 <span className="text-sm hidden md:inline">{currentUser.email}</span>
                 <Avatar>
-                  <AvatarImage src={currentUser.photoURL || ""} />
+                  <AvatarImage src={""} />
                   <AvatarFallback className="bg-nonprofit-500 text-white">
                     {currentUser.email?.charAt(0).toUpperCase() || "U"}
                   </AvatarFallback>
