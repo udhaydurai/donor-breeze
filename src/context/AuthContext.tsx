@@ -1,19 +1,20 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { 
-  User, 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  signOut as firebaseSignOut 
-} from "firebase/auth";
-import { auth, googleProvider } from "../lib/firebase";
 import { toast } from "@/components/ui/use-toast";
+import { 
+  sendVerificationCode, 
+  verifyCode, 
+  isAuthenticated, 
+  getCurrentUserEmail,
+  signOut as firebaseSignOut
+} from "../lib/firebase";
 
 interface AuthContextType {
-  currentUser: User | null;
+  currentUser: { email: string } | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
+  sendLoginCode: (email: string) => Promise<void>;
+  verifyLoginCode: (code: string) => Promise<boolean>;
+  signOut: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,27 +28,23 @@ export function useAuth() {
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    // Check if user is authenticated on app load
+    if (isAuthenticated()) {
+      const email = getCurrentUserEmail();
+      if (email) {
+        setCurrentUser({ email });
+      }
+    }
+    setLoading(false);
   }, []);
 
-  const signInWithGoogle = async () => {
+  const sendLoginCode = async (email: string) => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      // Check if the email is the allowed one
-      if (user.email !== "sdts.mails@gmail.com") {
-        // Sign out if not the correct email
-        await firebaseSignOut(auth);
+      if (email !== "sdts.mails@gmail.com") {
         toast({
           title: "Access Denied",
           description: "Only sdts.mails@gmail.com is allowed to login.",
@@ -56,36 +53,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
+      await sendVerificationCode(email);
+      
       toast({
-        title: "Login Successful",
-        description: "Welcome back!",
+        title: "Verification Code Sent",
+        description: "Please check your email for the verification code. (For demo, check the console)",
       });
     } catch (error) {
-      console.error("Error signing in with Google", error);
+      console.error("Error sending verification code", error);
       toast({
-        title: "Login Failed",
-        description: "There was a problem signing in. Please try again.",
+        title: "Error",
+        description: "There was a problem sending the verification code. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const signOut = async () => {
+  const verifyLoginCode = async (code: string) => {
     try {
-      await firebaseSignOut(auth);
-      toast({
-        title: "Signed Out",
-        description: "You have been successfully signed out.",
-      });
+      const isValid = verifyCode(code);
+      
+      if (isValid) {
+        const email = getCurrentUserEmail();
+        if (email) {
+          setCurrentUser({ email });
+        }
+        
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        return true;
+      } else {
+        toast({
+          title: "Invalid Code",
+          description: "The verification code is invalid or has expired. Please try again.",
+          variant: "destructive",
+        });
+        return false;
+      }
     } catch (error) {
-      console.error("Error signing out", error);
+      console.error("Error verifying code", error);
+      toast({
+        title: "Error",
+        description: "There was a problem verifying the code. Please try again.",
+        variant: "destructive",
+      });
+      return false;
     }
+  };
+
+  const signOut = () => {
+    firebaseSignOut();
+    setCurrentUser(null);
+    toast({
+      title: "Signed Out",
+      description: "You have been successfully signed out.",
+    });
   };
 
   const value = {
     currentUser,
     loading,
-    signInWithGoogle,
+    sendLoginCode,
+    verifyLoginCode,
     signOut,
   };
 

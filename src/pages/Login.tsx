@@ -1,18 +1,61 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FcGoogle } from 'react-icons/fc';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address").refine(
+    (email) => email === "sdts.mails@gmail.com",
+    { message: "Only sdts.mails@gmail.com is allowed to login." }
+  ),
+});
+
+const verificationSchema = z.object({
+  code: z.string().length(6, "Verification code must be 6 digits"),
+});
 
 const Login = () => {
-  const { currentUser, signInWithGoogle } = useAuth();
+  const { currentUser, sendLoginCode, verifyLoginCode } = useAuth();
+  const [step, setStep] = useState<'email' | 'verification'>('email');
+  const [email, setEmail] = useState("");
+
+  const emailForm = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
+
+  const verificationForm = useForm<z.infer<typeof verificationSchema>>({
+    resolver: zodResolver(verificationSchema),
+    defaultValues: {
+      code: "",
+    },
+  });
 
   // If already logged in, redirect to invoices page
   if (currentUser) {
     return <Navigate to="/invoices" />;
   }
+
+  const handleSendCode = async (values: z.infer<typeof loginSchema>) => {
+    setEmail(values.email);
+    await sendLoginCode(values.email);
+    setStep('verification');
+  };
+
+  const handleVerifyCode = async (values: z.infer<typeof verificationSchema>) => {
+    await verifyLoginCode(values.code);
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -27,19 +70,73 @@ const Login = () => {
 
         <Alert>
           <AlertDescription>
-            Only sdts.mails@gmail.com is authorized to access this system. Please sign in with your Google account.
+            Only sdts.mails@gmail.com is authorized to access this system.
           </AlertDescription>
         </Alert>
 
-        <Button 
-          className="w-full flex items-center justify-center gap-2 h-12"
-          variant="outline"
-          size="lg"
-          onClick={signInWithGoogle}
-        >
-          <FcGoogle className="h-5 w-5" />
-          <span>Sign in with Google</span>
-        </Button>
+        {step === 'email' ? (
+          <Form {...emailForm}>
+            <form onSubmit={emailForm.handleSubmit(handleSendCode)} className="space-y-4">
+              <FormField
+                control={emailForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="sdts.mails@gmail.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full">Send Verification Code</Button>
+            </form>
+          </Form>
+        ) : (
+          <div className="space-y-4">
+            <Form {...verificationForm}>
+              <form onSubmit={verificationForm.handleSubmit(handleVerifyCode)} className="space-y-4">
+                <FormField
+                  control={verificationForm.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Verification Code</FormLabel>
+                      <FormControl>
+                        <InputOTP maxLength={6} {...field}>
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </FormControl>
+                      <p className="text-sm text-muted-foreground">
+                        A verification code has been sent to {email}.<br />
+                        <span className="font-bold">(For demo purposes, check the browser console)</span>
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex flex-col gap-2">
+                  <Button type="submit">Verify Code</Button>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={() => setStep('email')}
+                  >
+                    Back to Email
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
+        )}
       </div>
     </div>
   );
